@@ -1,0 +1,49 @@
+use master
+drop database transação
+
+create database transação
+
+use transação
+create table Clientes (
+ ClienteID int primary key,
+ Nome varchar(100),
+ Saldo Decimal(10,2)
+ );
+
+ Insert into Clientes (ClienteID, Nome, Saldo) values
+  (1, 'Cliente A', 1000.00),
+  (2, 'Cliente B', 500.00);
+
+create procedure TransferirSaldoEntreCliente
+ @ClienteOrigem int,
+ @ClienteDestino int,
+ @ValorTransferencia decimal (10, 2)
+ as
+ begin
+  begin transaction TransferirSaldo
+
+  if ((select Saldo from Clientes where ClienteID = @ClienteOrigem) >=@ValorTransferencia)
+
+  begin
+
+  update Clientes
+set Saldo = Saldo - @ValorTransferencia
+where ClienteID = @ClienteOrigem
+
+update Clientes
+set Saldo = Saldo + @ValorTransferencia
+where ClienteID = @ClienteDestino
+commit transaction TransferirSaldo;
+print 'Transferência realizada, com sucesso!';
+end
+else
+begin
+	rollback transaction TransferirSaldo;
+	print 'Saldo insuficiente para realizar a transferência!';
+	end
+end
+
+exec TransferirSaldoEntreCliente
+@ClienteOrigem = 2, @ClienteDestino = 1,
+@ValorTransferencia = 10000.00;
+
